@@ -40,8 +40,8 @@
   },
   "variables": {
     "vmName": "[parameters('vmDnsName')]",
-    "virtualNetworkName": "ephemeral-home",
-    "subnetName": "ephemeral-sub",
+    "virtualNetworkName": "DevNetwork",
+    "subnetName": "Subnet1",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
     "publicIPAddressName": "[concat(parameters('vmDnsName'),'-pub')]",
