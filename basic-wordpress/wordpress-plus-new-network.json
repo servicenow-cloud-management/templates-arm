@@ -5,7 +5,10 @@
     "vmDnsName": {
       "type": "string",
       "metadata": {
-        "description": "This is the unique DNS name of the for the public IP for your VM"
+        "description": "This is the unique DNS name of the for the public IP for your VM",
+        "SNC::Parameter::Metadata": {
+          "allowedPattern": "[a-z][0-9a-z]{5,10}"
+        }
       }
     },
     "adminUsername": {
