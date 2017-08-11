@@ -8,7 +8,7 @@
         "description": "This is the unique DNS name of the for the public IP for your VM",
         "SNC::Parameter::Metadata": {
           "allowedPattern": "[a-z][0-9a-z]{5,10}"
-        } 
+        }
       }
     },
     "adminUsername": {
@@ -23,6 +23,13 @@
       "defaultValue": "someP@ssw0rd",
       "metadata": {
         "description": "This is the password you wish to assign to your VMs admin account"
+      }
+    },
+    "mySqlPassword": {
+      "type": "securestring",
+      "defaultValue": "someP@ssw0rd",
+      "metadata": {
+        "description": "Password for your mySQL account"
       }
     },
     "vmSize": {
@@ -40,21 +47,22 @@
   },
   "variables": {
     "vmName": "[parameters('vmDnsName')]",
-    "virtualNetworkName": "DevNetwork",
-    "subnetName": "Subnet1",
+    "publicIPAddressName": "[concat(parameters('vmDnsName'),'-pub')]",
+    "nicName": "[concat(parameters('vmDnsName'),'-nic')]",
+    "subnetName": "[concat(parameters('vmDnsName'),'-subnet')]",
+    "virtualNetworkName": "[concat(parameters('vmDnsName'),'-network')]",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
-    "publicIPAddressName": "[concat(parameters('vmDnsName'),'-pub')]",
+    "addressPrefix": "10.0.0.0/16",
+    "subnetPrefix": "10.0.0.0/24",
     "publicIPAddressType": "Dynamic",
-    "nicName": "[concat(parameters('vmDnsName'),'-nic')]",
     "imagePublisher": "Canonical",
     "imageVersion": "latest",
     "imageSKU": "14.04.2-LTS",
     "imageOffer": "UbuntuServer",
     "storageAccountType": "Standard_LRS",
     "vmStorageAccountContainerName": "vhds",
-    "newStorageAccountName":"[take(concat(parameters('vmDnsName'),uniqueString(parameters('vmDnsName'))),24)]",
-    "mySqlPassword":"[concat(parameters('adminUsername'),'4sql')]"
+    "newStorageAccountName":"[take(concat(parameters('vmDnsName'),uniqueString(parameters('vmDnsName'))),24)]"
   },
   "resources": [
     {
@@ -80,10 +88,34 @@
     },
     {
       "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('virtualNetworkName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('addressPrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('subnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('subnetPrefix')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-05-01-preview",
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[variables('nicName')]",
       "location": "[resourceGroup().location]",
-      "dependsOn": [ "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]" ],
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
+        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+      ],
       "properties": {
         "ipConfigurations": [
           {
@@ -163,7 +195,7 @@
           ]
         },
         "protectedSettings": {
-          "commandToExecute": "[concat('sh install_wordpress.sh ', variables('mySqlPassword'))]"
+          "commandToExecute": "[concat('sh install_wordpress.sh ', parameters('mySqlPassword'))]"
         }
       }
     }
