@@ -230,7 +230,7 @@
     "mysqlProbePassword": "[parameters('mysqlUserPassword')]",
     "mysqlProbePort0": 9200,
     "mysqlProbePort1": 9201,
-    "mySqlpublicIPName": "mysqlIP01",
+    "mySqlpublicIPName": "[concat(variables('longNamingInfix'),'-ip')]",
     "mysqlReplicationPassword": "[parameters('mysqlUserPassword')]",
     "mysqlsshNatRuleFrontEndPort0": 64001,
     "mysqlsshNatRuleFrontEndPort1": 64002,
