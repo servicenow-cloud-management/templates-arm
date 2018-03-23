@@ -4,16 +4,16 @@
   "parameters": {
     "drupalVmSku": {
       "type": "string",
-      "defaultValue": "Standard_D1_v2",
+      "defaultValue": "Standard_DS2_v2",
       "metadata": {
         "description": "Size of Drupal VMs in the VM Scale Set."
       }
     },
     "drupalUbuntuOSVersion": {
       "type": "string",
-      "defaultValue": "14.04.4-LTS",
+      "defaultValue": "16.04-LTS",
       "allowedValues": [
-        "14.04.4-LTS"
+        "16.04-LTS"
       ],
       "metadata": {
         "description": "The Ubuntu version for the Drupal VM. This will pick a fully patched image of this given Ubuntu version. Allowed values are: 14.04.4-LTS."
@@ -28,9 +28,9 @@
     },
     "drupalAdminPassword": {
       "type": "securestring",
-      "defaultValue": "Drupal Administrator Password",
+      "defaultValue": "MinimumCompl3x!tyDR",
       "metadata": {
-        "description": "The Ubuntu version for the Drupal VM. This will pick a fully patched image of this given Ubuntu version. Allowed values are: 15.10, 14.04.4-LTS."
+        "description": "Admin Password for the Drupal Installation"
       }
     },
     "drupalVersion": {
@@ -74,6 +74,7 @@
     },
     "adminPassword": {
       "type": "securestring",
+      "defaultValue": "inimumCompl3x!tyDR",
       "metadata": {
         "description": "Admin password on all Drupal and gluster VMs."
       }
@@ -112,6 +113,7 @@
     },
     "mysqlUserPassword": {
       "type": "securestring",
+      "defaultValue": "MinimumCompl3x!tyMY",
       "metadata": {
         "description": "mysql user password. For existing enter the existing password. In case of new MySQL server this will be the password for MySqL admin user"
       }
@@ -130,13 +132,14 @@
     },
     "newMySqlVmPassword": {
       "type": "securestring",
+      "defaultValue": "MinimumCompl3x!tySV",
       "metadata": {
         "description": "Required when creating new MySQL server. Password to ssh in to the MySQL VMs"
       }
     },
     "newMySqlVmSize": {
       "type": "string",
-      "defaultValue": "Standard_D2",
+      "defaultValue": "Standard_DS2_v2",
       "metadata": {
         "description": "Required when creating new MySQL server. size for the mySql VMs"
       }
@@ -152,21 +155,6 @@
         "description": "Required when creating new MySQL server. VM OS version"
       }
     },
-    "glusterTemplateLocation": {
-      "type": "string",
-      "defaultValue": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/gluster-file-system/",
-      "metadata": {
-        "description": "file location for gluster template"
-      }
-    },
-    "templateLocation": {
-      "type": "string",
-      "defaultValue": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/301-drupal8-vmss-glusterfs-mysql",
-      "metadata": {
-        "description": "template file location",
-        "artifactsBaseUrl": "Base URL of the Publisher Template gallery package"
-      }
-    },
     "storageAccountNamePrefix": {
       "type": "string",
       "defaultValue": "drustoacc",
@@ -176,7 +164,7 @@
     },
     "glusterVmSize": {
       "type": "string",
-      "defaultValue": "Standard_D1_v2",
+      "defaultValue": "Standard_DS2_v2",
       "metadata": {
         "description": "size for the gluster VMs"
       }
@@ -196,6 +184,7 @@
     }
   },
   "variables": {
+    "templateLocation": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/301-drupal8-vmss-glusterfs-mysql",
     "accountid": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',variables('diagnosticsStorageAccountResourceGroup'),'/providers/','Microsoft.Storage/storageAccounts/', variables('diagnosticsStorageAccountName'))]",
     "addressPrefix": "10.0.0.0/16",
     "bePoolName": "[concat(variables('namingInfix'), 'bepool')]",
@@ -216,6 +205,7 @@
     "glusterVMNamePrefix": "glus",
     "glusterVnetAddressPrefix": "10.0.0.0/16",
     "glusterVnetName": "drupglusvnet",
+    "glusterTemplateLocation": "https://raw.githubusercontent.com/servicenow-cloud-management/templates-arm/master/drupal/gluster-file-system.json",
     "imageReference": "[variables('osType')]",
     "insightsApiVersion": "2015-04-01",
     "ipConfigName": "[concat(variables('namingInfix'), 'ipconfig')]",
@@ -377,7 +367,7 @@
       "properties": {
         "mode": "Incremental",
         "templateLink": {
-          "uri": "[concat(parameters('templateLocation'), '/nested/mysql-resources_',parameters('createNewMySQLServer'),'.json')]",
+          "uri": "[concat(variables('templateLocation'), '/nested/mysql-resources_',parameters('createNewMySQLServer'),'.json')]",
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
@@ -475,7 +465,7 @@
       "properties": {
         "mode": "Incremental",
         "templateLink": {
-          "uri": "[concat(parameters('glusterTemplateLocation'), '/azuredeploy.json')]",
+          "uri": "[variables('glusterTemplateLocation')]",
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
@@ -602,7 +592,7 @@
                   "autoUpgradeMinorVersion": true,
                   "settings": {
                     "fileUris": [
-                      "[concat(parameters('templateLocation'),'/scripts/install_drupal.sh')]"
+                      "[concat(variables('templateLocation'),'/scripts/install_drupal.sh')]"
                     ],
                     "commandToExecute": "[concat('sudo bash install_drupal.sh -d ',parameters('drupalVersion') ,' -u ',parameters('drupalAdminUser'),' -p ',parameters('drupalAdminPassword') ,' -g ',variables('glusterVMNamePrefix'),'0 -v gfsvol -s ', parameters('existingMySqlFQDN'),' -n ', parameters('existingMysqlUser'),' -P ', parameters('mysqlUserPassword'),' -k ',parameters('drupalInstallationDatabaseName'),' -z ',parameters('createNewMySQLServer'),' -S ',parameters('newMySqlDnsLabelPrefix'), '.', variables('location'), '.cloudapp.azure.com')]"
                   }
